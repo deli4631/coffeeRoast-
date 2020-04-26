@@ -1,54 +1,74 @@
 from PyQt5 import QtWidgets, QtCore, uic
-from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QLabel, QSlider
 from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
 import sys  # We need sys so that we can pass argv to QApplication
 import os
 from random import randint
 import csv
-from abc import ABC, abstractmethod
+import abc
 
+#slider
+class Subject():
+    """
+    Know its observers. Any number of Observer objects may observe a
+    subject.
+    Send a notification to its observers when its state changes.
+    """
 
-class Subject(ABC):
-    def attach(self, o : Observer) -> None:
-        pass 
-    def detach(self, o: Observer) -> None:
-        pass
-    def notify(self) -> None:
-        pass
+    def __init__(self, slider):
+        self._observers = set()
 
-class ConcreteSubject(Subject):
-    _state: int = None
-    _observers: List[Observer] = []
+        self._subject_state = None
 
-    def attach(self, o: Observer) -> None: 
-        print("Subject: Attched an observer.")
-        self._observers.append(o)
+    def attach(self, observer):
+        observer._subject = self
+        self._observers.add(observer)
 
-    def detach(self, o: Observer) -> None:
-        self._observers.remove(o)
-    
-    def notify(self) -> None:
+    def detach(self, observer):
+        observer._subject = None
+        self._observers.discard(observer)
+
+    def _notify(self):
         for observer in self._observers:
-            observer.update(self)
+            observer.update(self._subject_state)
 
-    # need implement function to return val
+    @property
+    def subject_state(self):
+        return self._subject_state
+
+    @subject_state.setter
+    def subject_state(self, arg):
+        self._subject_state = arg
+        self._notify()
 
 
+#graph
+class Observer(metaclass=abc.ABCMeta):
+    """
+    Define an updating interface for objects that should be notified of
+    changes in a subject.
+    """
 
-class Observer(ABC):
+    def __init__(self):
+        self._subject = None
+        self._observer_state = None
 
-    @abstractmethod
-    def update(self, subject: Subject) -> None:
+    @abc.abstractmethod
+    def update(self, arg):
         pass
-
 
 
 class ConcreteObserver(Observer):
-    def update(self, subject: Subject) -> None:
-        if subject._state < 3:
-            print("ConcreteObserverA: Reacted to the event")
+    """
+    Implement the Observer updating interface to keep its state
+    consistent with the subject's.
+    Store state that should stay consistent with the subject's.
+    """
 
+    def update(self, arg):
+        self._observer_state = arg
+        # ...
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -56,6 +76,8 @@ class MainWindow(QtWidgets.QMainWindow):
     loc = 0
     tmp_limit = 430
     data = {}
+    val = 0
+    slider_move = False
 
     def __init__(self, *args, **kwargs):
         super(MainWindow,self).__init__(*args, **kwargs)
@@ -65,6 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.data_setup()
         self.startButton.clicked.connect(self.startClicked)
         self.pauseButton.clicked.connect(self.pauseClicked)
+        self.recordButton.clicked.connect(self.recordButtonClicked)
         self.plot()
         
 
@@ -112,8 +135,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.graphWidget.plot(hour, temp)
     
     def changeValue(self, value):
-        print(value)
         self.tmpLimit.setText("Temp Limit : %s" % (value))
+        self.tmp_limit = value  
 
     
     def startClicked(self):
@@ -122,6 +145,9 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def pauseClicked(self):
         self.run_program = False
+    
+    def recordButtonClicked(self):
+        self.slider_move = True
 
 
     def update_plot_data(self):
@@ -135,10 +161,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 return 
             # self.y = self.y[1:]  # Remove the first 
             # val = randint(0,100)
-            val = self.data[self.x[self.loc]]
+            if(self.slider_move):
+                val = self.tmp_limit
+            else:
+                val = self.data[self.x[self.loc]]
+            
             self.y.append(val)  # Add a new random value.
             self.temp.setText("Temp: %s" % (val))
-
+        
             self.data_line.setData(self.x, self.y)  # Update the data.
 
 def main():
