@@ -37,7 +37,7 @@
      <string>Start</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="offButton">
+   <widget class="QPushButton" name="pauseButton">
     <property name="geometry">
      <rect>
       <x>480</x>
@@ -47,7 +47,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Off</string>
+     <string>Pause</string>
     </property>
    </widget>
    <widget class="QSlider" name="powerSlider">
@@ -68,7 +68,7 @@
      <rect>
       <x>360</x>
       <y>30</y>
-      <width>58</width>
+      <width>111</width>
       <height>16</height>
      </rect>
     </property>
@@ -76,17 +76,17 @@
      <string>Temp: 0</string>
     </property>
    </widget>
-   <widget class="QLabel" name="powerButton">
+   <widget class="QLabel" name="tmpLimit">
     <property name="geometry">
      <rect>
       <x>20</x>
       <y>80</y>
-      <width>91</width>
+      <width>191</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Power Level 0</string>
+     <string>Temp Limit: 0</string>
     </property>
    </widget>
   </widget>
